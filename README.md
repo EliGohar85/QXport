@@ -20,23 +20,23 @@ Export all charts on your Qlik Sense sheet into a single Excel file — clean, f
 > ℹ️ Works in both Qlik Sense Enterprise and Qlik Cloud (via dev-hub or side-loading).
 
 ## ⚙️ Extension Settings
-- **Button Text** – Customize the export button label
-- **File Name** – Define the exported Excel file name
-- **Max Rows per Sheet** – Control export size per object (default: 100,000)
+- **Button Text** - Customize the export button label
+- **File Name** - Define the exported Excel file name
+- **Max Rows per Sheet** - Control export size per object (default: 100,000)
 
 ## 📁 File Structure
-- `qxport.js` – Core logic
-- `qxport.css` – Stylesheet
-- `qxport.qext` – Metadata
-- `qxport.wbl` – Extension bundle list
-- `preview.png` – Extension icon
+- `qxport.js` - Core logic
+- `qxport.css` - Stylesheet
+- `qxport.qext` - Metadata
+- `qxport.wbl` - Extension bundle list
+- `preview.png` - Extension icon
 
 ## 📸 Preview
 ![preview](preview.png)
 
 ---
 
-## 🛠️ To Do – Planned for Future Versions
+## 🛠️ To Do - Planned for Future Versions
 
 - [ ] Support for **CSV** and other output formats
 - [ ] Option to **exclude empty data**
@@ -53,8 +53,8 @@ Explore the code, report bugs, or contribute on GitHub:
 ---
 
 ## 📜 License
-MIT – see [LICENSE](LICENSE)
+MIT - see [LICENSE](LICENSE)
 
 ---
 
-Made with ❤️ by [Eli Gohar](https://www.linkedin.com/in/eli-gohar/)
+Made with ❤️ by [Eli Gohar](https://www.linkedin.com/in/eligohar/)
