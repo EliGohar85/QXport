@@ -1,0 +1,169 @@
+.export-excel-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	/* padding: 20px; */
+	font-family: Arial, sans-serif;
+	/* background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); */
+	border-radius: 6px;
+}
+
+.export-excel-btn {
+	background: linear-gradient(135deg, #28a745, #20c997);
+	color: white;
+	border: none;
+	border-radius: 8px;
+	padding: 12px 24px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	min-width: 180px;
+	justify-content: center;
+	margin-top: 16px;
+	margin-bottom: 16px;
+	align-self: center;
+}
+
+.export-excel-btn:hover {
+	background: linear-gradient(135deg, #218838, #1db584);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.export-excel-btn:active {
+	transform: translateY(0);
+}
+
+.export-excel-btn:disabled {
+	background: #6c757d;
+	cursor: not-allowed;
+	transform: none;
+	opacity: 0.7;
+}
+
+.export-icon {
+	font-size: 18px;
+}
+
+.export-status {
+	margin-top: 15px;
+	padding: 8px 16px;
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 4px;
+	font-size: 14px;
+	color: #495057;
+	text-align: center;
+	min-height: 20px;
+	border: 1px solid #dee2e6;
+	font-weight: 500;
+}
+
+.export-progress {
+	margin-top: 15px;
+	width: 100%;
+	max-width: 200px;
+}
+
+.progress-bar {
+	width: 100%;
+	height: 8px;
+	background-color: #e9ecef;
+	border-radius: 4px;
+	overflow: hidden;
+	margin-bottom: 5px;
+}
+
+.progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #28a745, #20c997);
+	width: 0%;
+	transition: width 0.3s ease;
+	border-radius: 4px;
+}
+
+.progress-text {
+	text-align: center;
+	font-size: 12px;
+	color: #6c757d;
+	font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+	.export-excel-container {
+		padding: 15px;
+	}
+
+	.export-excel-btn {
+		font-size: 14px;
+		padding: 10px 20px;
+		min-width: 150px;
+	}
+
+	.export-status {
+		font-size: 12px;
+		padding: 6px 12px;
+	}
+}
+
+/* Animation for button loading state */
+.export-excel-btn:disabled::after {
+	content: "";
+	width: 16px;
+	height: 16px;
+	margin-left: 8px;
+	border: 2px solid transparent;
+	border-top: 2px solid #ffffff;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.export-object-list {
+	list-style: none;
+	padding-left: 0;
+	color: #ccc;
+	font-size: 13px;
+}
+
+.export-object-list input[type="checkbox"] {
+	margin-right: 6px;
+	transform: scale(1.1);
+	vertical-align: middle;
+}
+
+.export-object-list li {
+	margin: 6px 0;
+	color: #999;
+}
+
+.export-list-title {
+	margin-top: 16px;
+	font-weight: 500;
+	font-size: 14px;
+	color: #999;
+	text-align: center;
+}
+
+.chart-list-container {
+	max-height: 240px;
+	overflow-y: auto;
+	padding: 8px 12px;
+	margin-top: 10px;
+}

@@ -1,0 +1,17 @@
+{
+    "name": "QXport",
+    "description": "Export all sheet charts to Excel file with each chart in separate sheet",
+    "icon": "extension",
+    "type": "visualization",
+    "version": "1.0.0",
+    "author": "Eli Gohar",
+    "homepage": "",
+    "keywords": "qlik-sense, visualization, export, excel",
+    "license": "MIT",
+    "repository": "",
+    "dependencies": {
+        "qlik-sense": ">=3.0.x"
+    },
+    "preview": "preview.png",
+    "bundle": false
+}
