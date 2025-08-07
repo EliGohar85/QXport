@@ -1,7 +1,7 @@
 # QXport
 
 **Your Dashboard. One File.**  
-Export all charts on your Qlik Sense sheet into a single Excel file — clean, fast, and hassle-free.
+Export all charts on your Qlik Sense sheet into a single Excel file - clean, fast, and hassle-free.
 
 ## 🌟 Features
 - Select which visualizations to export
