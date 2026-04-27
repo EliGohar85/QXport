@@ -3,7 +3,7 @@
     "description": "Export all sheet charts to Excel file with each chart in separate sheet",
     "icon": "extension",
     "type": "visualization",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "author": "Eli Gohar",
     "homepage": "",
     "keywords": "qlik-sense, visualization, export, excel",
