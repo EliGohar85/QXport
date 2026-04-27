@@ -129,13 +129,20 @@ define([
 
                     <div class="export-list-title"></div>
 
+                    <div class="qxport-current-toolbar">
+                        <div class="qxport-toolbar-actions">
+                            <button type="button" class="qxport-secondary-btn qxport-current-select-all-btn">Select All</button>
+                            <button type="button" class="qxport-secondary-btn qxport-current-clear-all-btn">Clear All</button>
+                        </div>
+                    </div>
+
                     <div class="qxport-app-toolbar" style="display:none;">
                         <input type="text" class="qxport-search-input" placeholder="Search sheets or charts..." />
                         <div class="qxport-toolbar-actions">
-                            <button type="button" class="qxport-secondary-btn qxport-select-visible-btn">Select All Visible</button>
-                            <button type="button" class="qxport-secondary-btn qxport-clear-visible-btn">Clear All</button>
-                            <button type="button" class="qxport-secondary-btn qxport-expand-all-btn">Expand All</button>
-                            <button type="button" class="qxport-secondary-btn qxport-collapse-all-btn">Collapse All</button>
+							<button type="button" class="qxport-secondary-btn qxport-expand-all-btn">Expand All</button>
+							<button type="button" class="qxport-secondary-btn qxport-collapse-all-btn">Collapse All</button>
+							<button type="button" class="qxport-secondary-btn qxport-select-visible-btn">Select All Visible</button>
+							<button type="button" class="qxport-secondary-btn qxport-clear-visible-btn">Clear All</button>
                         </div>
                     </div>
 
@@ -167,6 +174,7 @@ define([
             var $root = $element.find('.export-excel-container');
             var $title = $element.find('.export-list-title');
             var $objectList = $element.find('.export-object-list');
+            var $currentToolbar = $element.find('.qxport-current-toolbar');
             var $toolbar = $element.find('.qxport-app-toolbar');
             var $searchInput = $element.find('.qxport-search-input');
             var $selectionSummary = $element.find('.qxport-selection-summary');
@@ -248,30 +256,55 @@ define([
             }
 
             function applyAppFilter() {
-                var term = String($searchInput.val() || '').trim().toLowerCase();
-                uiState.searchTerm = term;
+				var term = String($searchInput.val() || '').trim().toLowerCase();
+				uiState.searchTerm = term;
 
-                var $groups = $element.find('.qxport-sheet-group');
+				var $groups = $element.find('.qxport-sheet-group');
 
-                $groups.each(function() {
-                    var $group = $(this);
-                    var sheetTitle = String($group.data('sheetTitle') || '').toLowerCase();
-                    var groupMatches = !term || sheetTitle.indexOf(term) !== -1;
-                    var visibleCount = 0;
+				$groups.each(function() {
+					var $group = $(this);
+					var sheetTitle = String($group.data('sheetTitle') || '').toLowerCase();
+					var groupMatches = !term || sheetTitle.indexOf(term) !== -1;
+					var visibleCount = 0;
 
-                    $group.find('.qxport-chart-item').each(function() {
-                        var $item = $(this);
-                        var chartTitle = String($item.data('chartTitle') || '').toLowerCase();
-                        var visible = !term || groupMatches || chartTitle.indexOf(term) !== -1;
-                        $item.toggle(visible);
-                        if (visible) visibleCount++;
-                    });
+					$group.find('.qxport-chart-item').each(function() {
+						var $item = $(this);
+						var chartTitle = String($item.data('chartTitle') || '').toLowerCase();
+						var visible = !term || groupMatches || chartTitle.indexOf(term) !== -1;
 
-                    var showGroup = groupMatches || visibleCount > 0;
-                    $group.toggle(showGroup);
+						$item.toggle(visible);
+
+						if (visible) {
+							visibleCount++;
+						}
+					});
+
+					var showGroup = groupMatches || visibleCount > 0;
+					$group.toggle(showGroup);
+
+					var totalCount = Number($group.data('chartCount')) || visibleCount;
+					var countText;
+
+					if (!term || groupMatches) {
+						countText = totalCount + ' chart' + (totalCount === 1 ? '' : 's');
+					} else {
+						countText = visibleCount + ' of ' + totalCount + ' chart' + (totalCount === 1 ? '' : 's');
+					}
+
+					$group.find('.qxport-sheet-chart-count').text('(' + countText + ')');
+				});
+
+				updateSelectionSummary();
+			}
+
+            function bindCurrentSheetHandlers() {
+                $element.find('.qxport-current-select-all-btn').off('click').on('click', function() {
+                    $element.find('.chart-checkbox').prop('checked', true);
                 });
 
-                updateSelectionSummary();
+                $element.find('.qxport-current-clear-all-btn').off('click').on('click', function() {
+                    $element.find('.chart-checkbox').prop('checked', false);
+                });
             }
 
             function bindAppModeHandlers() {
@@ -336,6 +369,7 @@ define([
                 updateMainExportButton();
 
                 $title.text('Select charts to export from this sheet');
+                $currentToolbar.show();
                 $toolbar.hide();
                 $selectionSummary.hide();
 
@@ -375,6 +409,7 @@ define([
 
                     var items = await Promise.all(promises);
                     $objectList.html(items.filter(Boolean).join(''));
+                    bindCurrentSheetHandlers();
                 } catch (err) {
                     console.error('Failed to load sheet objects:', err);
                     $objectList.html('<li>Failed to load charts.</li>');
@@ -387,6 +422,7 @@ define([
                 updateMainExportButton();
 
                 $title.text('Select charts to export from the app');
+                $currentToolbar.hide();
                 $toolbar.show();
 
                 $objectList.html('<li>Loading app sheets and charts...</li>');
@@ -396,7 +432,9 @@ define([
                         uiState.appSheets = await loadAppSelectionData(app, excludedVisualizations, $element);
                         uiState.appLoaded = true;
                     }
-
+					uiState.appSheets.sort(function(a, b) {
+						return a.sheetTitle.localeCompare(b.sheetTitle, undefined, { sensitivity: 'base' });
+					});
                     if (!uiState.appSheets.length) {
                         $objectList.html('<li>No exportable charts found in the app.</li>');
                         updateSelectionSummary();
@@ -422,11 +460,14 @@ define([
                         }).join('');
 
                         return `
-                            <li class="qxport-sheet-group" data-sheet-title="${escapeHtmlAttr(sheetGroup.sheetTitle)}">
+                            <li class="qxport-sheet-group" data-sheet-title="${escapeHtmlAttr(sheetGroup.sheetTitle)}" data-chart-count="${sheetGroup.charts.length}">
                                 <div class="qxport-sheet-header">
                                     <button type="button" class="qxport-sheet-toggle" data-sheet-id="${escapeHtmlAttr(sheetGroup.sheetId)}">▶</button>
                                     <div class="qxport-sheet-title-wrap">
-                                        <span class="qxport-sheet-title">${escapeHtml(sheetGroup.sheetTitle)} (${chartCountText})</span>
+                                        <span class="qxport-sheet-title">
+											${escapeHtml(sheetGroup.sheetTitle)}
+											<span class="qxport-sheet-chart-count">(${chartCountText})</span>
+										</span>
                                     </div>
                                     <div class="qxport-sheet-actions">
                                         <button type="button" class="qxport-link-btn qxport-sheet-select-all" data-sheet-id="${escapeHtmlAttr(sheetGroup.sheetId)}">Select all</button>
@@ -794,66 +835,6 @@ define([
     }
 
     async function extractTableData(app, objModel, layout, maxRows) {
-        var hc = layout.qHyperCube;
-
-        if (!hc) {
-            return [['No data']];
-        }
-
-        if (layout.visualization === 'treemap') {
-            return await extractTreemapDataViaTempCube(app, objModel, maxRows);
-        }
-
-        return await extractStandardHyperCubeData(objModel, hc, maxRows);
-    }
-
-    async function extractStandardHyperCubeData(objModel, hc, maxRows) {
-        var data = [];
-        var headers = [];
-
-        (hc.qDimensionInfo || []).forEach(function(dim) {
-            headers.push(dim.qFallbackTitle || 'Dim');
-        });
-
-        (hc.qMeasureInfo || []).forEach(function(meas) {
-            headers.push(meas.qFallbackTitle || 'Meas');
-        });
-
-        if (!headers.length) {
-            return [['No data']];
-        }
-
-        data.push(headers);
-
-        var totalRows = Math.min(hc.qSize && hc.qSize.qcy || 0, maxRows);
-        var pageSize = 1000;
-        var qcx = hc.qSize && hc.qSize.qcx || headers.length;
-
-        for (var i = 0; i < totalRows; i += pageSize) {
-            var pages = await objModel.getHyperCubeData('/qHyperCubeDef', [{
-                qTop: i,
-                qLeft: 0,
-                qWidth: qcx,
-                qHeight: Math.min(pageSize, totalRows - i)
-            }]);
-
-            (pages[0] && pages[0].qMatrix || []).forEach(function(row) {
-                var values = row.map(function(cell) {
-                    return getCellValue(cell);
-                });
-
-                while (values.length < headers.length) {
-                    values.push('');
-                }
-
-                data.push(values);
-            });
-        }
-
-        return data;
-    }
-
-    async function extractTreemapDataViaTempCube(app, objModel, maxRows) {
         var props = await objModel.getProperties();
         var hcDef = props && props.qHyperCubeDef;
 
@@ -861,6 +842,10 @@ define([
             return [['No data']];
         }
 
+        return await extractDataViaTempStraightCube(app, hcDef, maxRows);
+    }
+
+    async function extractDataViaTempStraightCube(app, hcDef, maxRows) {
         var qDimensions = (hcDef.qDimensions || []).map(function(dim) {
             return cloneObject(dim);
         });
@@ -869,31 +854,15 @@ define([
             return cloneObject(meas);
         });
 
-        var headers = [];
-        qDimensions.forEach(function(dim, index) {
-            var title =
-                dim.qDef && dim.qDef.qFieldLabels && dim.qDef.qFieldLabels[0] ||
-                dim.qDef && dim.qDef.qFieldDefs && dim.qDef.qFieldDefs[0] ||
-                dim.qDef && dim.qDef.qLabel ||
-                'Dim ' + (index + 1);
-            headers.push(title);
-        });
+        var width = qDimensions.length + qMeasures.length;
 
-        qMeasures.forEach(function(meas, index) {
-            var title =
-                meas.qDef && meas.qDef.qLabel ||
-                'Measure ' + (index + 1);
-            headers.push(title);
-        });
-
-        if (!headers.length) {
+        if (!width) {
             return [['No data']];
         }
 
-        var width = qDimensions.length + qMeasures.length;
         var pageSize = 1000;
         var sessionObject;
-        var data = [headers];
+        var data = [];
 
         try {
             sessionObject = await app.model.enigmaModel.createSessionObject({
@@ -903,6 +872,7 @@ define([
                 qHyperCubeDef: {
                     qDimensions: qDimensions,
                     qMeasures: qMeasures,
+                    qMode: 'S',
                     qInitialDataFetch: [{
                         qTop: 0,
                         qLeft: 0,
@@ -915,7 +885,29 @@ define([
             });
 
             var tempLayout = await sessionObject.getLayout();
-            var totalRows = Math.min(tempLayout.qHyperCube && tempLayout.qHyperCube.qSize && tempLayout.qHyperCube.qSize.qcy || 0, maxRows);
+            var tempHc = tempLayout && tempLayout.qHyperCube;
+
+            if (!tempHc) {
+                return [['No data']];
+            }
+
+            var headers = [];
+
+            (tempHc.qDimensionInfo || []).forEach(function(dim, index) {
+                headers.push(dim.qFallbackTitle || 'Dim ' + (index + 1));
+            });
+
+            (tempHc.qMeasureInfo || []).forEach(function(meas, index) {
+                headers.push(meas.qFallbackTitle || 'Measure ' + (index + 1));
+            });
+
+            if (!headers.length) {
+                return [['No data']];
+            }
+
+            data.push(headers);
+
+            var totalRows = Math.min(tempHc.qSize && tempHc.qSize.qcy || 0, maxRows);
 
             for (var top = 0; top < totalRows; top += pageSize) {
                 var pages = await sessionObject.getHyperCubeData('/qHyperCubeDef', [{
@@ -938,7 +930,7 @@ define([
                 });
             }
 
-            return data;
+            return data.length ? data : [['No data']];
         } finally {
             if (sessionObject) {
                 try {
@@ -1005,43 +997,44 @@ define([
     }
 
     async function ensureExcelJsLoaded() {
-		if (window.ExcelJS) {
-			return window.ExcelJS;
-		}
+        if (window.ExcelJS) {
+            return window.ExcelJS;
+        }
 
-		if (excelJsLoadPromise) {
-			return excelJsLoadPromise;
-		}
+        if (excelJsLoadPromise) {
+            return excelJsLoadPromise;
+        }
 
-		excelJsLoadPromise = new Promise(function(resolve, reject) {
-			requirejs(['./exceljs.min'], function(ExcelJS) {
-				if (ExcelJS) {
-					window.ExcelJS = ExcelJS;
-					resolve(ExcelJS);
-					return;
-				}
+        excelJsLoadPromise = new Promise(function(resolve, reject) {
+            requirejs(['./exceljs.min'], function(ExcelJS) {
+                if (ExcelJS) {
+                    window.ExcelJS = ExcelJS;
+                    resolve(ExcelJS);
+                    return;
+                }
 
-				if (window.ExcelJS) {
-					resolve(window.ExcelJS);
-					return;
-				}
+                if (window.ExcelJS) {
+                    resolve(window.ExcelJS);
+                    return;
+                }
 
-				reject(new Error('ExcelJS loaded but no module/global export was found'));
-			}, function(err) {
-				reject(new Error('Failed to load ExcelJS via RequireJS: ' + (err && err.message ? err.message : err)));
-			});
-		});
+                reject(new Error('ExcelJS loaded but no module/global export was found'));
+            }, function(err) {
+                reject(new Error('Failed to load ExcelJS via RequireJS: ' + (err && err.message ? err.message : err)));
+            });
+        });
 
-		return excelJsLoadPromise;
-	}
+        return excelJsLoadPromise;
+    }
 
     async function exportSheetsToXlsx(sheets, filename) {
-        if (!window.ExcelJS) {
+        var ExcelJS = await ensureExcelJsLoaded();
+
+        if (!ExcelJS) {
             throw new Error('ExcelJS is not available');
         }
 
-        var ExcelJS = await ensureExcelJsLoaded();
-		var workbook = new ExcelJS.Workbook();
+        var workbook = new ExcelJS.Workbook();
         workbook.creator = 'QXport';
         workbook.lastModifiedBy = 'QXport';
         workbook.created = new Date();
